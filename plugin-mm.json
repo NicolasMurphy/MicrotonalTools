@@ -1,0 +1,14 @@
+{
+  "MetaModuleBrandName": "Berserk Audio",
+  "MetaModuleBrandSlug": "MicrotonalTools",
+  "MetaModulePluginMaintainer": "Nicolas Murphy",
+  "MetaModulePluginMaintainerUrl": "https://github.com/NicolasMurphy",
+  "MetaModuleDescription": "Microtonal quantizer with preset scales.",
+  "MetaModuleIncludedModules": [
+    {
+      "slug": "Xenizer",
+      "name": "Xenizer",
+      "displayName": "Xenizer"
+    }
+  ]
+}
