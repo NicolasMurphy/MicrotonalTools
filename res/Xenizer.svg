@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="20.3203mm" height="128.5mm" viewBox="0 0 20.3203 128.5">
+  <rect width="20.3203" height="128.5" fill="#1a1a1a"/>
+  <text x="10.16" y="10" font-family="sans-serif" font-size="3" fill="#eeeeee" text-anchor="middle" font-weight="bold">XENIZER</text>
+  <text x="10.16" y="22" font-family="sans-serif" font-size="2" fill="#888888" text-anchor="middle">SCALE</text>
+  <text x="10.16" y="88" font-family="sans-serif" font-size="2" fill="#888888" text-anchor="middle">IN</text>
+  <text x="10.16" y="108" font-family="sans-serif" font-size="2" fill="#888888" text-anchor="middle">OUT</text>
+  <text x="10.16" y="126" font-family="sans-serif" font-size="1.6" fill="#666666" text-anchor="middle">BERSERK</text>
+</svg>
