@@ -48,6 +48,7 @@ struct Xenizer : Module
     enum ParamId
     {
         SCALE_PARAM,
+        BASE_PARAM,
         PARAMS_LEN
     };
     enum InputId
@@ -67,6 +68,7 @@ struct Xenizer : Module
         configSwitch(SCALE_PARAM, 0.f, (float)(NUM_SCALES - 1), 0.f, "Scale", {
             "PBDE-71", "F2 Toxin", "Dimethylaminobenzene", "Mycose",
         });
+        configParam(BASE_PARAM, -1.f, 1.f, 0.f, "Base pitch", " V");
         configInput(PITCH_INPUT, "Pitch");
         configOutput(PITCH_OUTPUT, "Pitch");
     }
@@ -75,8 +77,9 @@ struct Xenizer : Module
     {
         int scaleIdx = clamp((int)params[SCALE_PARAM].getValue(), 0, NUM_SCALES - 1);
         const Scale &scale = SCALES[scaleIdx];
+        float base_volts = params[BASE_PARAM].getValue();
 
-        float input_cents = inputs[PITCH_INPUT].getVoltage() * 1200.f;
+        float input_cents = (inputs[PITCH_INPUT].getVoltage() - base_volts) * 1200.f;
         float period_idx_f = std::floor(input_cents / scale.period_cents);
         int period_idx = (int)period_idx_f;
         float remainder = input_cents - period_idx_f * scale.period_cents;
@@ -102,7 +105,7 @@ struct Xenizer : Module
         }
 
         float output_cents = period_idx * scale.period_cents + best_pitch;
-        outputs[PITCH_OUTPUT].setVoltage(output_cents / 1200.f);
+        outputs[PITCH_OUTPUT].setVoltage(output_cents / 1200.f + base_volts);
     }
 };
 
@@ -115,6 +118,7 @@ struct XenizerWidget : ModuleWidget
         setPanel(createPanel(asset::plugin(pluginInstance, "res/Xenizer.svg")));
 
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.16, 35)), module, Xenizer::SCALE_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.16, 63)), module, Xenizer::BASE_PARAM));
         addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.16, 95)), module, Xenizer::PITCH_INPUT));
         addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.16, 115)), module, Xenizer::PITCH_OUTPUT));
     }
