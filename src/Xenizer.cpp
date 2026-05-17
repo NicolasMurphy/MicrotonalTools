@@ -55,6 +55,9 @@ struct Xenizer : Module
     enum InputId
     {
         PITCH_INPUT,
+        SCALE_CV_INPUT,
+        MODE_CV_INPUT,
+        BASE_CV_INPUT,
         INPUTS_LEN
     };
     enum OutputId
@@ -74,15 +77,18 @@ struct Xenizer : Module
         });
         configParam(BASE_PARAM, -5.f, 5.f, 0.f, "Base pitch", " V");
         configInput(PITCH_INPUT, "Pitch");
+        configInput(SCALE_CV_INPUT, "Scale CV");
+        configInput(MODE_CV_INPUT, "Mode CV");
+        configInput(BASE_CV_INPUT, "Base CV");
         configOutput(PITCH_OUTPUT, "Pitch");
     }
 
     void process(const ProcessArgs &args) override
     {
-        int scaleIdx = clamp((int)params[SCALE_PARAM].getValue(), 0, NUM_SCALES - 1);
+        int scaleIdx = clamp((int)(params[SCALE_PARAM].getValue() + inputs[SCALE_CV_INPUT].getVoltage()), 0, NUM_SCALES - 1);
         const Scale &scale = SCALES[scaleIdx];
-        int modeIdx = clamp((int)params[MODE_PARAM].getValue(), 0, Scale::N - 1);
-        float base_volts = params[BASE_PARAM].getValue();
+        int modeIdx = clamp((int)(params[MODE_PARAM].getValue() + inputs[MODE_CV_INPUT].getVoltage()), 0, Scale::N - 1);
+        float base_volts = params[BASE_PARAM].getValue() + inputs[BASE_CV_INPUT].getVoltage();
 
         // Build rotated pitches: same set of scale pitches, but anchored so
         // scale.pitches_cents[modeIdx] becomes the new 0¢ reference. Pitches
@@ -134,11 +140,14 @@ struct XenizerWidget : ModuleWidget
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/Xenizer.svg")));
 
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.16, 35)), module, Xenizer::SCALE_PARAM));
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.16, 55)), module, Xenizer::MODE_PARAM));
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.16, 75)), module, Xenizer::BASE_PARAM));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.16, 95)), module, Xenizer::PITCH_INPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.16, 115)), module, Xenizer::PITCH_OUTPUT));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(7.5, 32)), module, Xenizer::SCALE_PARAM));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(22.98, 32)), module, Xenizer::SCALE_CV_INPUT));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(7.5, 56)), module, Xenizer::MODE_PARAM));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(22.98, 56)), module, Xenizer::MODE_CV_INPUT));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(7.5, 80)), module, Xenizer::BASE_PARAM));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(22.98, 80)), module, Xenizer::BASE_CV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.5, 108)), module, Xenizer::PITCH_INPUT));
+        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(22.98, 108)), module, Xenizer::PITCH_OUTPUT));
     }
 };
 
