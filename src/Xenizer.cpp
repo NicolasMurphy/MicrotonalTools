@@ -68,7 +68,7 @@ struct Xenizer : Module
         configSwitch(SCALE_PARAM, 0.f, (float)(NUM_SCALES - 1), 0.f, "Scale", {
             "PBDE-71", "F2 Toxin", "Dimethylaminobenzene", "Mycose",
         });
-        configParam(BASE_PARAM, -1.f, 1.f, 0.f, "Base pitch", " V");
+        configParam(BASE_PARAM, -5.f, 5.f, 0.f, "Base pitch", " V");
         configInput(PITCH_INPUT, "Pitch");
         configOutput(PITCH_OUTPUT, "Pitch");
     }
@@ -79,7 +79,7 @@ struct Xenizer : Module
         const Scale &scale = SCALES[scaleIdx];
         float base_volts = params[BASE_PARAM].getValue();
 
-        float input_cents = (inputs[PITCH_INPUT].getVoltage() - base_volts) * 1200.f;
+        float input_cents = inputs[PITCH_INPUT].getVoltage() * 1200.f;
         float period_idx_f = std::floor(input_cents / scale.period_cents);
         int period_idx = (int)period_idx_f;
         float remainder = input_cents - period_idx_f * scale.period_cents;
