@@ -48,6 +48,7 @@ struct Xenizer : Module
     enum ParamId
     {
         SCALE_PARAM,
+        MODE_PARAM,
         BASE_PARAM,
         PARAMS_LEN
     };
@@ -68,6 +69,9 @@ struct Xenizer : Module
         configSwitch(SCALE_PARAM, 0.f, (float)(NUM_SCALES - 1), 0.f, "Scale", {
             "PBDE-71", "F2 Toxin", "Dimethylaminobenzene", "Mycose",
         });
+        configSwitch(MODE_PARAM, 0.f, (float)(Scale::N - 1), 0.f, "Mode", {
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
+        });
         configParam(BASE_PARAM, -5.f, 5.f, 0.f, "Base pitch", " V");
         configInput(PITCH_INPUT, "Pitch");
         configOutput(PITCH_OUTPUT, "Pitch");
@@ -77,25 +81,38 @@ struct Xenizer : Module
     {
         int scaleIdx = clamp((int)params[SCALE_PARAM].getValue(), 0, NUM_SCALES - 1);
         const Scale &scale = SCALES[scaleIdx];
+        int modeIdx = clamp((int)params[MODE_PARAM].getValue(), 0, Scale::N - 1);
         float base_volts = params[BASE_PARAM].getValue();
+
+        // Build rotated pitches: same set of scale pitches, but anchored so
+        // scale.pitches_cents[modeIdx] becomes the new 0¢ reference. Pitches
+        // that wrap past the period get period_cents added back.
+        float root_offset = scale.pitches_cents[modeIdx];
+        float rotated_pitches[Scale::N];
+        for (int i = 0; i < Scale::N; i++)
+        {
+            float p = scale.pitches_cents[(modeIdx + i) % Scale::N] - root_offset;
+            if (p < 0.f) p += scale.period_cents;
+            rotated_pitches[i] = p;
+        }
 
         float input_cents = inputs[PITCH_INPUT].getVoltage() * 1200.f;
         float period_idx_f = std::floor(input_cents / scale.period_cents);
         int period_idx = (int)period_idx_f;
         float remainder = input_cents - period_idx_f * scale.period_cents;
 
-        // Nearest-pitch search across the 12 stored pitches and the period
-        // itself (period equals the next period's root, so snapping up to it
-        // is musically correct when the input is near the top of the period).
-        float best_pitch = scale.pitches_cents[0];
-        float best_dist = std::fabs(remainder - scale.pitches_cents[0]);
+        // Nearest-pitch search across the 12 rotated pitches and the period
+        // (period equals the next period's root, so snapping up to it is
+        // musically correct when the input is near the top of the period).
+        float best_pitch = rotated_pitches[0];
+        float best_dist = std::fabs(remainder - rotated_pitches[0]);
         for (int i = 1; i < Scale::N; i++)
         {
-            float d = std::fabs(remainder - scale.pitches_cents[i]);
+            float d = std::fabs(remainder - rotated_pitches[i]);
             if (d < best_dist)
             {
                 best_dist = d;
-                best_pitch = scale.pitches_cents[i];
+                best_pitch = rotated_pitches[i];
             }
         }
         float d_period = std::fabs(remainder - scale.period_cents);
@@ -118,7 +135,8 @@ struct XenizerWidget : ModuleWidget
         setPanel(createPanel(asset::plugin(pluginInstance, "res/Xenizer.svg")));
 
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.16, 35)), module, Xenizer::SCALE_PARAM));
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.16, 63)), module, Xenizer::BASE_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.16, 55)), module, Xenizer::MODE_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.16, 75)), module, Xenizer::BASE_PARAM));
         addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.16, 95)), module, Xenizer::PITCH_INPUT));
         addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.16, 115)), module, Xenizer::PITCH_OUTPUT));
     }
